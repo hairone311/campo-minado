@@ -2,6 +2,9 @@ package br.com.cod3r.cm.modelo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
+
+import br.com.cod3r.cm.excecao.ExplosaoException;
 
 public class Tabuleiro {
 
@@ -22,6 +25,23 @@ public class Tabuleiro {
 		sortearMinas();
 	}
 
+	public void abrir(int linha, int coluna) {
+		try {
+			campos.parallelStream().filter(c -> c.getLinha() == linha && c.getColuna() == coluna).findFirst()
+					.ifPresent(c -> c.abrir());
+			;
+		} catch (ExplosaoException e) {
+			campos.forEach(c -> c.setAberto(true));
+			throw e;
+		}
+	}
+
+	public void alternarMarcacao(int linha, int coluna) {
+		campos.parallelStream().filter(c -> c.getLinha() == linha && c.getColuna() == coluna).findFirst()
+				.ifPresent(c -> c.alternarMarcacao());
+		;
+	}
+
 	private void gerarCampos() {
 		for (int linha = 0; linha < linhas; linha++) {
 			for (int coluna = 0; coluna < colunas; coluna++) {
@@ -39,6 +59,39 @@ public class Tabuleiro {
 	}
 
 	private void sortearMinas() {
+		Long minasArmadas = 0L;
+		Predicate<Campo> minado = c -> c.isMinado();
 
+		do {
+			minasArmadas = campos.stream().filter(minado).count();
+			int aleatorio = (int) (Math.random() * campos.size());
+			campos.get(aleatorio).minar();
+		} while (minasArmadas < minas);
+	}
+
+	public boolean objectivoAlcancado() {
+		return campos.stream().allMatch(c -> c.objectivoAlcancado());
+	}
+
+	public void reiniciar() {
+		campos.stream().forEach(c -> c.reiniciar());
+		sortearMinas();
+	}
+
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+
+		int i = 0;
+		for (int linha = 0; linha < linhas; linha++) {
+			for (int coluna = 0; coluna < colunas; coluna++) {
+				sb.append(" ");
+				sb.append(campos.get(i));
+				sb.append(" ");
+				i++;
+			}
+			sb.append("\n");
+		}
+
+		return sb.toString();
 	}
 }
