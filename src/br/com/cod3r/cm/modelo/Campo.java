@@ -121,7 +121,7 @@ public class Campo {
 		if (marcado) {
 			return "x";
 		} else if (aberto && minado) {
-			return "x";
+			return "*";
 		} else if (aberto && minasNaVizinhanca() > 0) {
 			return Long.toString(minasNaVizinhanca());
 		} else if (aberto) {
